@@ -44,10 +44,11 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"strings"
-	
+	"time"
+	"sync"
 )
+
     var conferenceName = "Go Conference"
 	const conferenceTickets = 50
 	var remainingTickets uint = 50
@@ -60,6 +61,8 @@ import (
 		numberOfTickets uint
 	}
  
+var wg = sync.WaitGroup{}
+
 func main(){
 	// var conferenceName = "Go Conference"
 	
@@ -75,7 +78,7 @@ func main(){
 	// slice
 	// var bookings []string
 
-	for {
+	// for {
 	
 	  firstName, lastName, email, userTickets :=  getUserInput()
 	   isValidName,isValidEmail,isValidTicketNumber := validateUserInput(firstName,lastName,email,userTickets)
@@ -83,7 +86,9 @@ func main(){
 	  if isValidName && isValidEmail && isValidTicketNumber {
 	
 	bookTicket ( userTickets , firstName , lastName , email)
-	sendTicket(userTickets,firstName,lastName,email)
+
+	wg.Add(1)
+	go sendTicket(userTickets,firstName,lastName,email)
 
 	// this loop ends when iterated over all elements of the bookings list
 
@@ -94,7 +99,7 @@ func main(){
 	if remainingTickets == 0 {
 		// end program
 		fmt.Println("Our conference is booked out. Come back next year.")
-		break
+		// break
 	}
 	
 	  }else
@@ -112,7 +117,8 @@ func main(){
 		}
        
 	  }
-	}
+	  wg.Wait()
+	
 	
 
 	//   fmt.Printf("The whole slice: %v\n",bookings)
@@ -205,4 +211,11 @@ func sendTicket(userTickets uint, firstName string, lastName string,email string
 	fmt.Println("####################")
 	fmt.Printf("Sending ticket:\n %v to email address %v\n", ticket,email)
 	fmt.Println("####################")
+	wg.Done()
 } 
+
+// Waitgroup :- waits for the launched goroutine to finish
+// package "sync" provides basic synchronization functionality
+// Add : Sets the number of goroutines to wait for 
+// wait: blocks until the WaitGroup counter is 0
+// Done: decrements the waitgroup counter by 1 so this is called by goroutine to indicate that its finished.
